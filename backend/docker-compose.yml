@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: collector-postgres
+    environment:
+      POSTGRES_DB: collector
+      POSTGRES_USER: collector
+      POSTGRES_PASSWORD: collector
+    ports:
+      - "5433:5432"
+    volumes:
+      - collector_pg_data:/var/lib/postgresql/data
+
+volumes:
+  collector_pg_data:

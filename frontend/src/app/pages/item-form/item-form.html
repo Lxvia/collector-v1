@@ -1,0 +1,33 @@
+<div class="page">
+    <h1>Créer un objet</h1>
+
+    <form [formGroup]="itemForm" (ngSubmit)="onSubmit()">
+        <div class="field">
+            <label for="title">Titre</label>
+            <input id="title" type="text" formControlName="title" />
+
+            @if (itemForm.get('title')?.invalid && itemForm.get('title')?.touched) {
+            <small>Le titre est obligatoire.</small>
+            }
+        </div>
+
+        <div class="field">
+            <label for="description">Description</label>
+            <textarea id="description" formControlName="description"></textarea>
+        </div>
+
+        <div class="field">
+            <label for="price">Prix</label>
+            <input id="price" type="number" formControlName="price" />
+
+            @if (itemForm.get('price')?.invalid && itemForm.get('price')?.touched) {
+            <small>Le prix doit être positif.</small>
+            }
+        </div>
+
+        <div class="actions">
+            <button type="submit">Créer</button>
+            <a routerLink="/">Retour</a>
+        </div>
+    </form>
+</div>

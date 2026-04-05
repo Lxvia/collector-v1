@@ -1,0 +1,14 @@
+<nav
+    style="padding: 1rem; background: #1a1a2e; color: white; display: flex; justify-content: space-between; align-items: center;">
+    <span style="font-weight: bold; font-size: 1.2rem;">🏷️ Collector</span>
+    <div>
+        @if (!keycloak.isLoggedIn()) {
+        <button (click)="keycloak.login()">Se connecter</button>
+        } @else {
+        <span style="margin-right: 1rem;">👤 {{ keycloak.getUsername() }}</span>
+        <button (click)="keycloak.logout()">Se déconnecter</button>
+        }
+    </div>
+</nav>
+
+<router-outlet></router-outlet>

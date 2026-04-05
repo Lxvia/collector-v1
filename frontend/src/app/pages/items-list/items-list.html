@@ -1,0 +1,33 @@
+<div class="page">
+    <div class="header">
+        <h1>Liste des objets</h1>
+        <a routerLink="/create">Créer un objet</a>
+    </div>
+
+    <div *ngIf="isLoading">
+        <p>Chargement...</p>
+    </div>
+
+    <div *ngIf="errorMessage">
+        <p>{{ errorMessage }}</p>
+    </div>
+
+    <div *ngIf="!isLoading && !errorMessage && items.length === 0">
+        <p>Aucun objet pour le moment.</p>
+    </div>
+
+    <div *ngFor="let item of items" class="item-card">
+        <h2>{{ item.title }}</h2>
+        <p>{{ item.description }}</p>
+        <p><strong>Prix :</strong> {{ item.price }} €</p>
+        <p><strong>Statut :</strong> {{ item.status }}</p>
+        <p><strong>Date :</strong> {{ item.createdAt }}</p>
+
+        <div class="actions">
+            <button (click)="updateStatus(item.id, 'PENDING')">Mettre en attente</button>
+            <button (click)="updateStatus(item.id, 'APPROVED')">Approuver</button>
+            <button (click)="updateStatus(item.id, 'REJECTED')">Rejeter</button>
+            <button (click)="deleteItem(item.id)">Supprimer</button>
+        </div>
+    </div>
+</div>

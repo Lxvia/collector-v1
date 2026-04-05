@@ -1,0 +1,29 @@
+.page {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+input,
+textarea {
+    padding: 0.75rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+}
+
+small {
+    color: #c62828;
+    margin-top: 0.25rem;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}

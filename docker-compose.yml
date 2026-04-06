@@ -1,6 +1,22 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: collector
+      POSTGRES_USER: collector
+      POSTGRES_PASSWORD: collector
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - collector-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U collector"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   postgres-keycloak:
     image: postgres:15
     environment:
@@ -11,6 +27,11 @@ services:
       - postgres_keycloak_data:/var/lib/postgresql/data
     networks:
       - collector-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
@@ -22,14 +43,47 @@ services:
       KC_DB_PASSWORD: keycloak
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8180
+      KC_HOSTNAME_STRICT: false
+      KC_HTTP_ENABLED: true
     ports:
       - "8180:8080"
     depends_on:
-      - postgres-keycloak
+      postgres-keycloak:
+        condition: service_healthy
+    networks:
+      - collector-network
+
+  backend:
+    build: ./backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/collector
+      SPRING_DATASOURCE_USERNAME: collector
+      SPRING_DATASOURCE_PASSWORD: collector
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8180/realms/collector
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/collector/protocol/openid-connect/certs
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    networks:
+      - collector-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
     networks:
       - collector-network
 
 volumes:
+  postgres_data:
   postgres_keycloak_data:
 
 networks:

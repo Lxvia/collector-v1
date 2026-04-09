@@ -7,92 +7,65 @@ on:
     branches: [ main ]
 
 jobs:
-  backend:
-    name: Backend - Build & Test & Sonar
+  backend-build-test:
+    name: Backend - Build & Test
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Java 21
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-
-      - name: Cache Maven dependencies
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
           path: ~/.m2
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+      - name: Build & run tests
+        working-directory: backend
+        run: mvn clean verify -Dspring.profiles.active=test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: backend/target/surefire-reports/
 
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v3
+  sonar:
+    name: Sonar - Code analysis
+    runs-on: ubuntu-latest
+    needs: backend-build-test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+      - uses: actions/cache@v3
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
-
-      - name: Build, test & Sonar analysis
+      - name: SonarCloud analysis
         working-directory: backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn clean verify sonar:sonar \
+          mvn sonar:sonar \
             -Dspring.profiles.active=test \
             -Dsonar.projectKey=Lxvia_collector-v1 \
             -Dsonar.organization=lxvia \
             -Dsonar.host.url=https://sonarcloud.io
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: backend/target/surefire-reports/
-
-  security-scan:
+  trivy:
     name: Security - Trivy scan
     runs-on: ubuntu-latest
-    needs: backend
-
+    needs: backend-build-test
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Build backend Docker image
-        run: docker build -t collector-backend:latest ./backend
-
-      - name: Run Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: collector-backend:latest
-          format: table
-          exit-code: '0'
-          severity: CRITICAL,HIGH
-
-  frontend:
-    name: Frontend - Build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        working-directory: frontend
-        run: npm ci
-
-      - name: Build frontend
-        working-directory: frontend
-        run: npm run build
+        run: dock

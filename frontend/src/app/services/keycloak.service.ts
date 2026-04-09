@@ -17,9 +17,8 @@ export class KeycloakService {
         try {
             await this.keycloak.init({
                 onLoad: 'check-sso',
-                silentCheckSsoRedirectUri:
-                    window.location.origin + '/silent-check-sso.html',
-                checkLoginIframe: false
+                checkLoginIframe: false,
+                silentCheckSsoFallback: false
             });
         } catch (error) {
             console.warn('Keycloak init failed, continuing as unauthenticated', error);

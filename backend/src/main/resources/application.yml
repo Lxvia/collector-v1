@@ -5,9 +5,9 @@ spring:
   application:
     name: collector-backend
   datasource:
-    url: jdbc:postgresql://127.0.0.1:5433/collector
-    username: collector
-    password: collector
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://127.0.0.1:5433/collector}
+    username: ${SPRING_DATASOURCE_USERNAME:collector}
+    password: ${SPRING_DATASOURCE_PASSWORD:collector}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -21,8 +21,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8180/realms/collector
-          jwk-set-uri: http://localhost:8180/realms/collector/protocol/openid-connect/certs
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost:8180/realms/collector}
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:http://localhost:8180/realms/collector/protocol/openid-connect/certs}
 
 management:
   endpoints:
